@@ -1,19 +1,23 @@
 # Terra-Prospect
 
-**A public overview of an autonomous planetary resource-prospecting software architecture.**
+**Autonomous planetary resource prospecting with probabilistic sensor fusion, active sensing, Bayesian belief maps, and drill-in-the-loop validation.**
 
-Terra-Prospect explores how an off-road rover could autonomously search for subsurface resources,
-combine uncertain evidence from multiple sensor types, decide where additional measurements are
-most valuable, and use drilling to confirm and recalibrate its map without continuous human control.
+Terra-Prospect explores how an off-road planetary rover could autonomously search for subsurface resources, combine uncertain evidence from multiple sensor types, decide where additional measurements are most valuable, and use drilling to confirm and recalibrate its map without continuous human control.
 
-This repository is the public, non-sensitive project summary. The implementation, calibrated
-parameters, datasets, model artifacts, detailed research notes, and deployment configurations are
-maintained separately in a private engineering repository.
+This repository is the public, non-sensitive project summary. The implementation, calibrated parameters, datasets, model artifacts, detailed research notes, and deployment configurations are maintained separately in a private engineering repository.
+
+## Research Areas
+
+- Autonomous planetary rovers and space robotics
+- Probabilistic sensor fusion and Bayesian inference
+- Active sensing, information gain, and utility-aware planning
+- Resource mapping, depth estimation, and uncertainty quantification
+- Drill-in-the-loop validation and bounded online calibration
+- Safety-supervised autonomy and software-in-the-loop simulation
 
 ## The problem
 
-Planetary prospecting is more than autonomous driving or selecting an interesting rock. A useful
-system must answer:
+Planetary prospecting is more than autonomous driving or selecting an interesting rock. A useful system must answer:
 
 - Where is a candidate resource deposit?
 - How much material may be present?
@@ -44,7 +48,7 @@ The architecture emphasizes:
 - recoverability and energy cost in the planning objective;
 - bounded learning from drill confirmation;
 - deterministic safety authority over autonomous decisions;
-- independent simulation truth and flight belief models for credible testing.
+- independent simulation truth and onboard belief models for credible testing.
 
 ## System layers
 
@@ -60,21 +64,17 @@ The architecture emphasizes:
 
 ## Validation philosophy
 
-A planner should not be tested against the same model it uses to predict observations. The project
-therefore separates:
+A planner should not be tested against the same model it uses to predict observations. The project therefore separates:
 
 1. hidden environmental truth used by the test harness;
 2. imperfect onboard observation and belief models;
 3. an independent evaluator that measures map quality, discovery, efficiency, and safety.
 
-Blind campaigns intentionally vary the hidden sensor and environment behavior from the rover's
-assumptions. See [Validation Principles](docs/validation-principles.md).
+Blind campaigns intentionally vary the hidden sensor and environment behavior from the rover's assumptions. See [Validation Principles](docs/validation-principles.md).
 
 ## Project status
 
-The private engineering repository contains an initial software-in-the-loop vertical slice covering
-hidden truth, Bayesian belief updates, active planning, drill confirmation, bounded calibration, and
-blind evaluation. This remains research and pre-flight engineering, not flight-qualified software.
+The private engineering repository contains an initial software-in-the-loop vertical slice covering hidden truth, Bayesian belief updates, active planning, drill confirmation, bounded calibration, and blind evaluation. This remains research and pre-flight engineering, not flight-qualified software.
 
 ## Public/private boundary
 
@@ -95,8 +95,12 @@ It does not contain:
 
 See the [Public Roadmap](docs/public-roadmap.md) for the non-sensitive development sequence.
 
+## Follow The Project
+
+- **Star** the repository to support the research and find future updates.
+- **Watch** repository activity for new public milestones.
+- Use **GitHub Issues** or **Discussions** for research questions, related work, and collaboration ideas.
+
 ## Repository policy
 
-This repository is published for technical portfolio and project-discovery purposes. No license is
-granted for commercial use, redistribution, or creation of derivative implementations.
-
+This repository is published for technical portfolio and project-discovery purposes. No license is granted for commercial use, redistribution, or creation of derivative implementations.
