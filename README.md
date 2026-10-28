@@ -1,106 +1,125 @@
 # Terra-Prospect
 
-**Autonomous planetary resource prospecting with probabilistic sensor fusion, active sensing, Bayesian belief maps, and drill-in-the-loop validation.**
+**Sensor-agnostic planetary flyover analysis for habitability, resources, and landing suitability.**
 
-Terra-Prospect explores how an off-road planetary rover could autonomously search for subsurface resources, combine uncertain evidence from multiple sensor types, decide where additional measurements are most valuable, and use drilling to confirm and recalibrate its map without continuous human control.
+Terra-Prospect is a proof-of-concept research project for analyzing flyovers of planetary bodies
+using whatever calibrated remote-sensing observations a spacecraft provides. A run may contain one
+infrared product, hyperspectral imagery alone, radar and hyperspectral observations together, or a
+larger multimodal collection.
 
-This repository is the public, non-sensitive project summary. The implementation, calibrated parameters, datasets, model artifacts, detailed research notes, and deployment configurations are maintained separately in a private engineering repository.
+The pipeline evaluates the available evidence independently for three goals:
 
-## Research Areas
+1. **Habitability and biosignature potential** — environments that could support or preserve life,
+   and observations relevant to candidate biosignatures. Remote imagery alone is not proof of life.
+2. **Resource potential** — candidate water, volatiles, minerals, energy resources, or other useful
+   materials, with uncertainty and accessibility assumptions made explicit.
+3. **Landing suitability** — terrain and operational evidence relevant to a declared vehicle,
+   including slope, roughness, thermal conditions, illumination, and data quality.
 
-- Autonomous planetary rovers and space robotics
-- Probabilistic sensor fusion and Bayesian inference
-- Active sensing, information gain, and utility-aware planning
-- Resource mapping, depth estimation, and uncertainty quantification
-- Drill-in-the-loop validation and bounded online calibration
-- Safety-supervised autonomy and software-in-the-loop simulation
+This repository is the public, non-sensitive project summary. Implementation, detailed research,
+datasets, calibration parameters, model artifacts, and deployment configurations are maintained in
+a private engineering repository.
 
 ## The problem
 
-Planetary prospecting is more than autonomous driving or selecting an interesting rock. A useful system must answer:
+Planetary missions do not all carry the same instruments. Sensors also differ in resolution,
+geometry, physical sensitivity, calibration maturity, coverage, and systematic error. Simply
+stacking every image can increase confidence without adding independent information.
 
-- Where is a candidate resource deposit?
-- How much material may be present?
-- How uncertain is that estimate?
-- Is the material physically reachable and worth confirming?
-- Which next action buys the most useful knowledge within the mission budget?
+Terra-Prospect instead asks:
 
-Terra-Prospect treats this as a closed-loop **sense, update belief, plan, act, verify** problem.
+- Which goal can each available observation inform?
+- Which sensor or combination adds the most useful, non-redundant evidence?
+- Where is the evidence valid, missing, contradictory, or outside a model's applicability?
+- How should uncertainty and provenance follow every derived map?
+- Is the available evidence sufficient to support a decision, or should the system abstain?
 
 ## High-level approach
 
 ```mermaid
 flowchart LR
-    A["Calibrated sensor observations"] --> B["Probabilistic perception"]
-    B --> C["Resource belief map"]
-    C --> D["Utility-aware active planner"]
-    D --> E["Drive, sense, or drill"]
-    E --> F["Deterministic safety gate"]
-    E --> A
-    E --> G["Drill confirmation"]
-    G --> B
+    A["Planetary archive or local products"] --> B["Mission and instrument adapters"]
+    B --> C["Calibration, geometry, quality, provenance"]
+    C --> D["Co-registered planetary data cube"]
+    D --> E["Physics-anchored modality plugins"]
+    E --> F["Goal-specific probabilistic evidence"]
+    F --> G["Uncertainty, cost, and redundancy analysis"]
+    G --> H["Habitability / biosignature-potential map"]
+    G --> I["Resource-potential map"]
+    G --> J["Landing-suitability map"]
 ```
 
-The architecture emphasizes:
+The design supports common modalities such as hyperspectral and multispectral imagery, infrared and
+thermal observations, synthetic-aperture radar, altimetry, topography, and lidar. The payload is not
+fixed: unsupported or missing modalities are normal, and a scientifically bounded plugin must
+abstain when its required metadata or validity conditions are absent.
 
-- probabilistic resource and depth estimates rather than hard labels;
-- action-conditioned information gain for active sensing;
-- recoverability and energy cost in the planning objective;
-- bounded learning from drill confirmation;
-- deterministic safety authority over autonomous decisions;
-- independent simulation truth and onboard belief models for credible testing.
+See [Flyover Concept](docs/flyover-concept.md) for the public architecture boundary.
 
-## System layers
+## Combination analysis
 
-| Layer | Public description |
-|-------|--------------------|
-| Mission | Receives campaign goals and produces resource-map products |
-| Autonomy | Selects drive, sensing, and drilling actions under constraints |
-| World model | Maintains terrain, resource, depth, and uncertainty beliefs |
-| Perception and fusion | Converts sensor evidence into probabilistic map updates |
-| Instrument interface | Standardizes calibrated, timestamped observations |
-| Control and safety | Executes commands while enforcing deterministic limits |
-| Platform | Provides compute, power, thermal, and hardware abstraction |
+Each modality contributes goal-specific evidence with a validity mask, uncertainty, quality,
+processing cost, feature provenance, and declared shared systematics. Candidate combinations are
+compared independently for each goal. More sensors are not automatically better: redundant,
+low-quality, expensive, or invalid inputs can be excluded.
+
+The current private proof of concept implements a transparent combination-selection contract and a
+synthetic demonstration. Its scoring model establishes software behavior; it is not yet evidence of
+scientific detection performance.
 
 ## Validation philosophy
 
-A planner should not be tested against the same model it uses to predict observations. The project therefore separates:
+Credible evaluation requires more than checking whether a model agrees with its own simulator.
+Validation therefore emphasizes withheld scenes, instrument-removal ablations, uncertainty
+calibration, missing and corrupted metadata, resolution changes, conflicting sensors,
+cross-instrument transfer, and cross-body transfer.
 
-1. hidden environmental truth used by the test harness;
-2. imperfect onboard observation and belief models;
-3. an independent evaluator that measures map quality, discovery, efficiency, and safety.
-
-Blind campaigns intentionally vary the hidden sensor and environment behavior from the rover's assumptions. See [Validation Principles](docs/validation-principles.md).
+Every result must remain traceable to its source observations, calibration and geometry, plugin and
+model versions, validity envelope, and uncertainty assumptions. See
+[Validation Principles](docs/validation-principles.md).
 
 ## Project status
 
-The private engineering repository contains an initial software-in-the-loop vertical slice covering hidden truth, Bayesian belief updates, active planning, drill confirmation, bounded calibration, and blind evaluation. This remains research and pre-flight engineering, not flight-qualified software.
+The private engineering repository contains the initial sensor-agnostic scene and probabilistic
+evidence contracts, goal-aware combination analyzer, synthetic demonstration, and regression tests.
+The next external milestone is a small, remotely windowed real planetary archive example with one
+scientifically bounded modality path per goal—without requiring a bulk dataset download.
+
+Terra-Prospect remains a research proof of concept. It is not a life-detection claim, mineral
+reserve estimate, certified landing-site product, or flight-qualified system.
+
+## Earlier rover research
+
+The project began as an autonomous Moon/Mars rover prospecting system with Bayesian belief maps,
+active sensing, mobility-risk modeling, and drill-in-the-loop calibration. That work remains useful
+as historical validation and as a possible downstream consumer of flyover products, but it is no
+longer the primary product definition.
 
 ## Public/private boundary
 
 This public repository may contain:
 
-- general architecture and design principles;
-- non-sensitive diagrams and development milestones;
-- high-level results that are suitable for public disclosure.
+- general architecture, terminology, and scientific limitations;
+- disclosure-safe diagrams, milestones, and validation principles;
+- high-level results suitable for public release.
 
 It does not contain:
 
-- implementation source code or model weights;
-- real mission, instrument, or body-specific calibration values;
+- proprietary implementation source code or model weights;
 - private datasets or unpublished research notes;
-- detailed fault thresholds, deployment configurations, or commercial IP.
+- mission-specific calibration values, thresholds, or deployment configurations;
+- credentials, commercial IP, or sensitive partner information.
 
-## Roadmap
+## Roadmap and collaboration
 
-See the [Public Roadmap](docs/public-roadmap.md) for the non-sensitive development sequence.
+See the [Public Roadmap](docs/public-roadmap.md) for the disclosure-safe development sequence.
 
-## Follow The Project
-
-- **Star** the repository to support the research and find future updates.
-- **Watch** repository activity for new public milestones.
-- Use **GitHub Issues** or **Discussions** for research questions, related work, and collaboration ideas.
+- **Star** the repository to follow the research.
+- **Watch** repository activity for public milestones.
+- Use **GitHub Issues** or **Discussions** for related work, scientific critiques, and collaboration
+  ideas that do not expose restricted information.
 
 ## Repository policy
 
-This repository is published for technical portfolio and project-discovery purposes. No license is granted for commercial use, redistribution, or creation of derivative implementations.
+This repository is published for technical portfolio and project-discovery purposes. No license is
+granted for commercial use, redistribution, or creation of derivative implementations.
